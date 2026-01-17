@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+import os  # 新添加的模块，用于支持 Render 的动态端口
 
 app = Flask(__name__)
 
@@ -12,6 +13,14 @@ def get_target_address():
     """
     return jsonify({"attack_address": ATTACK_ADDRESS}), 200
 
+@app.route('/', methods=['GET'])  # 新增代码
+def home():
+    """
+    默认的根路径响应，避免 / 访问返回 404。
+    """
+    return jsonify({"message": "Welcome to the Cloud Service!"}), 200
+
 if __name__ == "__main__":
-    # 运行服务，监听所有地址，端口5000
-    app.run(host="0.0.0.0", port=5000)
+    # 动态绑定 Render 提供的端口，默认5000
+    PORT = int(os.environ.get('PORT', 5000))  # 新增代码
+    app.run(host="0.0.0.0", port=PORT)
