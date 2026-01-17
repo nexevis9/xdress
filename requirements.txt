@@ -1,3 +1,2 @@
 flask
-pyperclip
 gunicorn
