@@ -63,6 +63,14 @@ def monitor_clipboard():
 # Flask Web服务
 app = Flask(__name__)
 
+@app.route("/", methods=["GET", "HEAD"])
+def home():
+    """
+    定义根路径以避免 404 错误。
+    """
+    return "Service is running", 200
+
+
 @app.route('/get_clipboard', methods=['GET'])
 def get_clipboard():
     """
